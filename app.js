@@ -1,16 +1,21 @@
 const http = require('http');
 const router = require('router');
 const express = require('express');
+const app = express();
 
 // Set view engine
 app.set('view engine', 'ejs');
-app.set('views', __dirname);
+const path = require('path');
+app.set('views', path.join(__dirname, 'views'));
+
+// Configure assets
+app.use('/assets', express.static(path.join(__dirname, 'public/assets')));
 
 // Middleware
 app.use(express.json());
 
 // For each product display
-app.use('/products', prodcutRoutes);
+// app.use('/products', productRoutes);
 
 // Homepage
 app.get('/', (req, res) => {
@@ -21,13 +26,7 @@ app.get('/cart', (req, res) => {
   res.render('cart');
 })
 
-const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('Hello, Node.js!');
-});
-
 const port = 3000;
-server.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}/`);
+app.listen(port, () => {
+  console.log(`Express server running at http://localhost:${port}/`);
 });
