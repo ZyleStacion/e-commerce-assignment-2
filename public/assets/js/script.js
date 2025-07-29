@@ -4,7 +4,7 @@ class item {
         this.id = id;
         this.name = name;
         this.price = price;
-        this.quantity = quantity;
+        // this.quantity = quantity;
         this.img = img;
     }
 
@@ -12,6 +12,10 @@ class item {
         console.log(this.name);
     }
 }
+
+// TODO: Create product items
+new item = item(1, "Bronton", "3000", "assets/img/bronton.jpg")
+
 
 const shoppingCart = [];
 
@@ -23,7 +27,7 @@ function addtoCart(item) {
                 shoppingCart[i].quantity ++;
             }
             else {
-                shoppingCart.append(item);
+                shoppingCart.push(item);
             }
         }
     }
