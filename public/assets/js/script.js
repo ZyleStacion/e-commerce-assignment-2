@@ -59,13 +59,17 @@ function updateCartPreview() {
 }
 
 // Toggle cart preview visibility
-const cartIcon = document.getElementById('cart-icon');
-const cartPreview = document.getElementById('cart-preview');
+const cartIcon = document.getElementById('shopping-icon');
+const cartPreview = document.getElementById('hoverable-cart');
 
 cartIcon.addEventListener('mouseover', () => {
-    cartPreview.style.display = 'block';
+    cartPreview.classList.remove('hidden');
+    cartPreview.classList.add('visible');
+    console.log('Cart preview shown');
+    updateCartPreview();
 });
 
 cartIcon.addEventListener('mouseout', () => {
-    cartPreview.style.display = 'none';
+    cartPreview.classList.remove('visible');
+    cartPreview.classList.add('hidden');
 });
