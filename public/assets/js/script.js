@@ -62,3 +62,10 @@ function updateCartPreview() {
 const cartIcon = document.getElementById('cart-icon');
 const cartPreview = document.getElementById('cart-preview');
 
+cartIcon.addEventListener('mouseover', () => {
+    cartPreview.style.display = 'block';
+});
+
+cartIcon.addEventListener('mouseout', () => {
+    cartPreview.style.display = 'none';
+});
