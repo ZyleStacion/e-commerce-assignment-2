@@ -23,7 +23,7 @@ app.get('/', (req, res) => {
 })
 
 app.get('/cart', (req, res) => {
-  res.render('cart');
+  res.render('cart', { cartItems: [] });
 })
 
 const port = 3000;
