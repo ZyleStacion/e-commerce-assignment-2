@@ -22,21 +22,19 @@ const shoppingCart = [];
 
 // Add items to cart
 function addtoCart(item) {
-    if (shoppingCart.length > 0) {
-        for (let i = 0; i < shoppingCart.length; i++) {
-            if (shoppingCart[i].name == item.name) {
-                shoppingCart[i].quantity ++;
-            }
-            else {
-                shoppingCart.push(item);
-                updateCartPreview();
-            }
+    let found = false;
+    // Check if item already exists in the cart
+    for (let i = 0; i < shoppingCart.length; i++) {
+        if (shoppingCart[i].name === item.name) {
+            shoppingCart[i].quantity++;
+            found = true;
+            break;
         }
     }
-    else {
+    if (!found) {
         shoppingCart.push(item);
-        updateCartPreview();
     }
+    updateCartPreview();
     return shoppingCart;
 }
 
