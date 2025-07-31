@@ -29,13 +29,14 @@ function addtoCart(item) {
             }
             else {
                 shoppingCart.push(item);
+                updateCartPreview();
             }
         }
     }
     else {
         shoppingCart.push(item);
+        updateCartPreview();
     }
-    console.log(shoppingCart);
     return shoppingCart;
 }
 
