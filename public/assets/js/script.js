@@ -57,3 +57,8 @@ function updateCartPreview() {
         cartPreview.appendChild(li);
     });
 }
+
+// Toggle cart preview visibility
+const cartIcon = document.getElementById('cart-icon');
+const cartPreview = document.getElementById('cart-preview');
+

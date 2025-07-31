@@ -205,3 +205,11 @@ background-color:#EB0429;
      background-color:#000;
      font-size:14px;
 }
+
+#hoverable-cart.hidden {
+    display: none;
+}
+
+#hoverable-cart.visible {
+    display: block;
+}
