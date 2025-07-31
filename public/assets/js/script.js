@@ -38,3 +38,21 @@ function addtoCart(item) {
     console.log(shoppingCart);
     return shoppingCart;
 }
+
+function getCart() {
+    return shoppingCart
+}
+
+// Render items into our shopping cart
+function updateCartPreview() {
+    const cart = getCart();
+    const cartPreview = document.getElementById('cart-preview');
+
+    // Clear existing items
+    cartPreview.innerHTML = '';
+    cart.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = `${item.name} x${item.quantity} = $${item.price * item.quantity}`;
+        cartPreview.appendChild(li);
+    });
+}
