@@ -34,6 +34,9 @@ function addtoCart(item) {
     if (!found) {
         shoppingCart.push(item);
     }
+    // Should render an successful message
+    let message = `${item.name} has been added to your cart. Click the cart icon to view your cart.`;
+    alert(message);
     updateCartPreview();
     return shoppingCart;
 }
@@ -47,13 +50,18 @@ function updateCartPreview() {
     const cart = getCart();
     const cartPreview = document.getElementById('cart-preview');
 
-    // Clear existing items
-    cartPreview.innerHTML = '';
-    cart.forEach(item => {
-        const li = document.createElement("li");
-        li.textContent = `${item.name} x${item.quantity} = $${item.price * item.quantity}`;
+    // If the cart is empty, show a message
+    if (cart.length === 0) {
+        cartPreview.innerHTML = '<li>Your cart is empty</li>';
+    } else {
+        // Clear existing items
+        cartPreview.innerHTML = '';
+        cart.forEach(item => {
+            const li = document.createElement("li");
+            li.textContent = `${item.name} x${item.quantity} = $${item.price * item.quantity}`;
         cartPreview.appendChild(li);
-    });
+        });
+    }
 }
 
 // Toggle cart preview visibility
@@ -67,7 +75,29 @@ cartIcon.addEventListener('mouseover', () => {
     updateCartPreview();
 });
 
-cartIcon.addEventListener('mouseout', () => {
+cartPreview.addEventListener('mouseout', () => {
     cartPreview.classList.remove('visible');
     cartPreview.classList.add('hidden');
 });
+
+// TODO: Send cart data to the server
+function sendCartData() {
+    const cart = getCart();
+    fetch('/api/cart', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(cart)
+    })
+    .then(response => {
+        if (response.ok) {
+            console.log('Cart data sent successfully');
+        } else {
+            console.error('Error sending cart data');
+        }
+    })
+    .catch(error => {
+        console.error('Error sending cart data:', error);
+    });
+}
