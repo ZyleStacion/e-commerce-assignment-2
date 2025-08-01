@@ -23,7 +23,7 @@ app.get('/', (req, res) => {
 })
 
 // Cart route (also grab items from the cart)
-app.get('/post', (req, res) => {
+app.post('/cart', (req, res) => {
   res.render('cart', { cartItems: [] });
 })
 

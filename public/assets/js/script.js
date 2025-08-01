@@ -83,7 +83,7 @@ cartPreview.addEventListener('mouseout', () => {
 // TODO: Send cart data to the server
 function sendCartData() {
     const cart = getCart();
-    fetch('/api/cart', {
+    fetch('/cart', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
