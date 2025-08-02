@@ -1,8 +1,9 @@
 // Create store item object
 class Item {
-    constructor(id, name, price, quantity, img) {
+    constructor(id, name, description, price, quantity, img) {
         this.id = id;
         this.name = name;
+        this.description = description;
         this.price = price;
         this.quantity = quantity;
         this.img = img;
@@ -14,9 +15,15 @@ class Item {
 }
 
 // Create product items
-const Bronton = new Item(1, "Bronton", "3000", 1, "public/assets/img/bronton.jpg");
-const E_BMX = new Item(2, "E-BMX", "2000", 1, "public/assets/img/dummyimg.jpg");
-const F_65 = new Item(3, "F-65", "700", 1, "public/assets/img/f65.jpg");
+const Bronton = new Item(1, 
+    "Bronton", 
+    "500W Motor, 48V Battery, Range: 50 miles, Top Speed: 28 mph",
+    "3000",
+    1, 
+    "public/assets/img/bronton.jpg");
+
+const E_BMX = new Item(2, "E-BMX", "500W Motor, 48V Battery, Range: 50 miles, Top Speed: 28 mph", "2000", 1, "public/assets/img/dummyimg.jpg");
+const F_65 = new Item(3, "F-65", "500W Motor, 48V Battery, Range: 50 miles, Top Speed: 28 mph", "700", 1, "public/assets/img/f65.jpg");
 
 const shoppingCart = [];
 
@@ -71,7 +78,6 @@ const cartPreview = document.getElementById('hoverable-cart');
 cartIcon.addEventListener('mouseover', () => {
     cartPreview.classList.remove('hidden');
     cartPreview.classList.add('visible');
-    console.log('Cart preview shown');
     updateCartPreview();
 });
 
