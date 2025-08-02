@@ -14,6 +14,9 @@ app.use('/assets', express.static(path.join(__dirname, 'public/assets')));
 // Middleware
 app.use(express.json());
 
+// Store cart data in memory
+let storedCartData = [];
+
 // For each product display
 // app.use('/products', productRoutes);
 
@@ -23,8 +26,19 @@ app.get('/', (req, res) => {
 })
 
 // Cart route (also grab items from the cart)
-app.post('/cart', (req, res) => {
-  res.render('cart', { cartItems: [] });
+app.get('/cart', (req, res) => {
+  res.render('cart', { shoppingCart: storedCartData });
+})
+
+// API endpoint recieves cart data
+app.post('/api/cart', (req, res) => {
+  const cartData = req.body;
+  console.log("Cart data: ", cartData);
+  
+  // Store the cart data
+  storedCartData = cartData;
+
+  res.json({ success:true, message: 'Cart data received successfully' })
 })
 
 const port = 3000;

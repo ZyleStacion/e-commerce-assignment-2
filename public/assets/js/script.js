@@ -80,10 +80,10 @@ cartPreview.addEventListener('mouseout', () => {
     cartPreview.classList.add('hidden');
 });
 
-// TODO: Send cart data to the server
+// Send cart data to the server
 function sendCartData() {
     const cart = getCart();
-    fetch('/cart', {
+    fetch('/api/cart', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -100,4 +100,6 @@ function sendCartData() {
     .catch(error => {
         console.error('Error sending cart data:', error);
     });
+
+    return false;
 }
