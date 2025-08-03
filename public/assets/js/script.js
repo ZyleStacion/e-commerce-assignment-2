@@ -20,10 +20,10 @@ const Bronton = new Item(1,
     "500W Motor, 48V Battery, Range: 50 miles, Top Speed: 28 mph",
     "3000",
     1, 
-    "public/assets/img/bronton.jpg");
+    "assets/img/bronton.jpg");
 
-const E_BMX = new Item(2, "E-BMX", "500W Motor, 48V Battery, Range: 50 miles, Top Speed: 28 mph", "2000", 1, "public/assets/img/dummyimg.jpg");
-const F_65 = new Item(3, "F-65", "500W Motor, 48V Battery, Range: 50 miles, Top Speed: 28 mph", "700", 1, "public/assets/img/f65.jpg");
+const E_BMX = new Item(2, "E-BMX", "500W Motor, 48V Battery, Range: 50 miles, Top Speed: 28 mph", "2000", 1, "assets/img/dummyimg.jpg");
+const F_65 = new Item(3, "F-65", "500W Motor, 48V Battery, Range: 50 miles, Top Speed: 28 mph", "700", 1, "assets/img/f65.jpg");
 
 const shoppingCart = [];
 

@@ -4,43 +4,108 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shopping Cart</title>
+    <!-- Bootstrap core CSS -->
+    <link href="assets/css/bootstrap.css" rel="stylesheet">
     <style>
         .cart-container {
-            width: 80%;
+            width: 90%;
             margin: 0 auto;
             border: 1px solid #ddd;
             padding: 20px;
+            background-color: #fff;
         }
-        .cart-header, .cart-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        
+        .cart-table {
+            width: 100%;
+            border-collapse: collapse;
         }
+        
         .cart-header {
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 10px;
+            background-color: #f8f9fa;
+            font-weight: bold;
+            border-bottom: 2px solid #ddd;
         }
+        
+        .cart-header th {
+            padding: 15px 10px;
+            text-align: center;
+            border-right: 1px solid #ddd;
+        }
+        
+        .cart-header th:last-child {
+            border-right: none;
+        }
+        
         .cart-item {
-            padding: 10px 0;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid #eee;
         }
-        .cart-item img {
-            max-width: 100px;
+        
+        .cart-item:hover {
+            background-color: #f8f9fa;
         }
-        .cart-item p {
-            margin: 0;
-        }
-        .cart-item .description {
-            flex: 2;
-            padding: 0 10px;
-        }
-        .cart-item .price, .cart-item .qty, .cart-item .total {
-            flex: 1;
+        
+        .cart-item td {
+            padding: 15px 10px;
             text-align: center;
+            vertical-align: middle;
+            border-right: 1px solid #eee;
         }
-        .cart-item .qty input {
+        
+        .cart-item td:last-child {
+            border-right: none;
+        }
+        
+        .item-checkbox {
             width: 50px;
+        }
+        
+        .item-image {
+            width: 120px;
+        }
+        
+        .item-image img {
+            max-width: 100px;
+            height: auto;
+            border-radius: 5px;
+        }
+        
+        .item-description {
+            width: 300px;
+            text-align: left;
+            padding-left: 15px;
+        }
+        
+        .item-description p {
+            margin: 5px 0;
+        }
+        
+        .item-description strong {
+            color: #333;
+        }
+        
+        .item-price {
+            width: 100px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .item-quantity {
+            width: 100px;
+        }
+        
+        .item-quantity input {
+            width: 60px;
+            padding: 5px;
             text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        
+        .item-total {
+            width: 120px;
+            font-weight: bold;
+            color: #28a745;
+            font-size: 1.1em;
         }
         .update-btn, .remove-btn {
             background-color: black;
@@ -48,6 +113,10 @@
             border: none;
             padding: 10px 20px;
             cursor: pointer;
+        }
+
+        .edit-buttons {
+            padding-top: 20px;
         }
     </style>
     <!-- Link custom JS -->
@@ -57,37 +126,55 @@
 
 <div class="cart-container">
     <h1>Shopping Cart</h1>
-    <div class="cart-header">
-        <div>Remove</div>
-        <div>Image</div>
-        <div class="description">Product Description</div>
-        <div class="price">Price</div>
-        <div class="qty">Qty</div>
-        <div class="total">Total</div>
+    
+    <table class="cart-table">
+        <thead>
+            <tr class="cart-header">
+                <th class="item-checkbox">Remove</th>
+                <th class="item-image">Image</th>
+                <th class="item-description">Product Description</th>
+                <th class="item-price">Price</th>
+                <th class="item-quantity">Qty</th>
+                <th class="item-total">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Render cart-items -->
+            <% shoppingCart.forEach(item => { %>
+                <tr class="cart-item">
+                    <td class="item-checkbox">
+                        <input type="checkbox" name="remove-item" value="<%= item.name %>">
+                    </td>
+                    <td class="item-image">
+                        <img src="<%= item.img %>" alt="<%= item.name %> image">
+                    </td>
+                    <td class="item-description">
+                        <p><strong><%= item.name %></strong></p>
+                        <p><%= item.description %></p>
+                        <p>Availability: <span style="color:green;">Online</span> <span style="color:blue;">Immediate Pick-up</span></p>
+                    </td>
+                    <td class="item-price">$<%= item.price %></td>
+                    <td class="item-quantity">
+                        <input type="number" value="<%= item.quantity %>" min="1" data-item="<%= item.name %>">
+                    </td>
+                    <td class="item-total">$<%= (item.quantity * item.price).toFixed(2) %></td>
+                </tr>
+            <% }) %>
+            
+            <% if (shoppingCart.length == 0) { %>
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 30px;">
+                        Your cart is empty! Click <a href="/">here</a> to purchase some items.
+                    </td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+
+    <div class="edit-buttons">
+        <button class="update-btn">UPDATE QTY</button>
+        <button class="remove-btn">REMOVE</button>
     </div>
-
-    <!-- TODO: Add cart-items -->
-     <% shoppingCart.forEach(item => { %>
-        <div class="cart-item">
-            <div><input type="checkbox"></div>
-            <div><img src="<%= item.img %>" alt="<%= item.name %> image"></div>
-            <div class="description">
-                <p><strong><%= item.name %></strong></p>
-                <p><%= item.description %></p>
-                <p>Availability: <span style="color:green;">Online</span> <span style="color:blue;">Immediate Pick-up</span></p>
-            </div>
-            <div class="price"><%= item.price %></div>
-            <!-- Examine: SQL injection vulnerability? -->
-            <div class="qty"><input type="number" value="<%= item.quantity %>"></div> 
-            <div class="total"></div>
-        </div>
-     <% }) %>
-     <% if (shoppingCart.length == 0) { %>
-        <p>Your cart is empty! Click <a href="/">here</a> to purchase some items.</p>
-     <% } %>
-
-    <button class="update-btn">UPDATE QTY</button>
-    <button class="remove-btn">REMOVE</button>
 </div>
 
 </body>
