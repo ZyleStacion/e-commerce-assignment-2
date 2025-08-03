@@ -155,7 +155,7 @@
                     </td>
                     <td class="item-price">$<%= item.price %></td>
                     <td class="item-quantity">
-                        <input type="number" value="<%= item.quantity %>" min="1" data-item="<%= item.name %>">
+                        <input type="number" id="<%= item.id %>-qty" value="<%= item.quantity %>" min="1" data-item="<%= item.name %>">
                     </td>
                     <td class="item-total">$<%= (item.quantity * item.price).toFixed(2) %></td>
                 </tr>
@@ -172,10 +172,46 @@
     </table>
 
     <div class="edit-buttons">
-        <button class="update-btn">UPDATE QTY</button>
+        <button class="update-btn" onclick="updateQuantity()">UPDATE QTY</button>
         <button class="remove-btn">REMOVE</button>
     </div>
 </div>
 
+<script>
+    // Get the quantity and change the items' info
+    function updateQuantity() {
+        // Fetch quantities
+        const quantities = document.querySelectorAll('input[id$="-qty"]');
+
+        // Store updated quantities
+        const updatedQuantities = [];
+
+        quantities.forEach(input => {
+        const itemName = input.getAttribute('data-item');
+        const itemQuantity = parseInt(input.value);
+
+        // Update the table with the correct values
+        const row = input.closest('tr');
+        const priceCell = row.querySelector('.item-price');
+        const priceText = priceCell.textContent.replace('$', '');
+        const price = parseFloat(priceText);
+        const newTotal = (price * itemQuantity).toFixed(2);
+        const totalCell = row.querySelector('.item-total');
+        totalCell.textContent = `$${newTotal}`;
+            
+        console.log(`${itemName}: ${itemQuantity} * $${price} = $${newTotal}`);
+
+        updatedQuantities.push({
+            name: itemName,
+            quantity: itemQuantity
+        });
+        
+        console.log(`${itemName}: ${input.value}`);
+        });
+        
+        console.log('All updated quantities:', updatedQuantities);
+    }
+
+</script>
 </body>
 </html>
