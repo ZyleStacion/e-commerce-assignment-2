@@ -173,7 +173,7 @@
 
     <div class="edit-buttons">
         <button class="update-btn" onclick="updateQuantity()">UPDATE QTY</button>
-        <button class="remove-btn">REMOVE</button>
+        <button class="remove-btn" onclick="removeItems()">REMOVE</button>
     </div>
 </div>
 
@@ -208,8 +208,43 @@
         
         console.log(`${itemName}: ${input.value}`);
         });
+    }
+
+    // Delete items that are selected
+    function removeItems() {
+        // Get all selected items
+        const selectedItems = document.querySelectorAll('input[type="checkbox"][name="remove-item"]:checked')
+
+        if (selectedItems.length === 0) {
+            alert('No items selected');
+            return;
+        }
+
+        // Get the item names
+        const removedItems = [];
+        selectedItems.forEach(checkbox => {
+            removedItems.push(checkbox.value);
+        })
+
+        // Remove it from the able
+        selectedItems.forEach(checkbox => {
+            const row = checkbox.closest('tr');
+            row.remove()
+        })
+
+        // Render error if cart is empty
+        const items = document.querySelectorAll('.cart-item');
         
-        console.log('All updated quantities:', updatedQuantities);
+        if (items.length === 0) {
+            const tbody = document.querySelector('.cart-table tbody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 30px;">
+                        Your cart is empty! Click <a href="/">here</a> to purchase some items.
+                    </td>
+                </tr>
+            `;
+        }
     }
 
 </script>
