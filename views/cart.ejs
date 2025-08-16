@@ -119,8 +119,13 @@
             padding-top: 20px;
         }
     </style>
-    <!-- Link custom JS -->
+    <!-- Link custom JavaScript -->
     <script src="assets/js/cart.js"></script>
+    <!-- Initialize the PayPal JavaScript-SDK -->
+    <script
+            src="https://www.paypal.com/sdk/js?client-id=AaUpbWUDPcpAFJNoxNLwH6oStwiHVagzhyfqBjdQ56zio9_dAFFqqUcRt9_FDGTDaKXsHsQOBuxG7rI4&buyer-country=US&currency=USD&components=buttons&enable-funding=venmo,paylater,card"
+            data-sdk-integration-source="developer-studio">
+    </script>
 </head>
 <body>
 
@@ -174,6 +179,15 @@
     <div class="edit-buttons">
         <button class="update-btn" onclick="updateQuantity()">UPDATE QTY</button>
         <button class="remove-btn" onclick="removeItems()">REMOVE</button>
+    </div>
+
+    <!-- TODO: Payment Methods -->
+    <div class="payment-methods">
+        <h2>Available payment options</h2>
+        <div class="payment-logos">
+            
+        </div>
+        <button class="checkout-now">Checkout Now >>></button>
     </div>
 </div>
 
