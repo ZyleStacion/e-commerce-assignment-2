@@ -118,6 +118,57 @@
         .edit-buttons {
             padding-top: 20px;
         }
+
+        .payment-methods {
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .payment-methods h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        #payment-logos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin: 20px 0;
+            padding: 20px;
+        }
+
+        .payment-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .payment-logo img {
+            height: 60px;
+        }
+
+        /* Scale Google Pay logo to match PayPal visual size */
+        .payment-logo img[alt="Google Pay Logo"] {
+            height: 80px;
+            transform: scale(1.2);
+        }
+
+        .checkout-now {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .checkout-now:hover {
+            background-color: #218838;
+        }
     </style>
     <!-- Link custom JavaScript -->
     <script src="assets/js/cart.js"></script>
@@ -181,11 +232,26 @@
         <button class="remove-btn" onclick="removeItems()">REMOVE</button>
     </div>
 
-    <!-- TODO: Payment Methods -->
+    <!-- Payment Methods -->
     <div class="payment-methods">
         <h2>Available payment options</h2>
-        <div class="payment-logos">
-            
+        <div id="payment-logos">
+            <!-- PayPal Logo -->
+            <div class="payment-logo">
+                <img src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_37x23.jpg" 
+                     height="60" alt="PayPal Logo">
+            </div>
+            <!-- Google Pay Mark -->
+            <div class="payment-logo">
+                <img src="assets/img/google-pay-mark_800.svg" 
+                     height="60" alt="Google Pay Logo">
+            </div>
+            <!-- Mastercard -->
+            <a title="Mastercard Inc. and Pentagram Design, Public domain, via Wikimedia Commons" href="https://commons.wikimedia.org/wiki/File:Mastercard-logo.svg"><img width="64" alt="Mastercard-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/64px-Mastercard-logo.svg.png?20210817144358"></a>
+            <!-- Visa -->
+             <a title="Visa Inc., Nikon1803, Gameposo, and Tokyoship, Public domain, via Wikimedia Commons" href="https://commons.wikimedia.org/wiki/File:Visa_2021.svg"><img width="64" alt="Visa logo since 2021" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Visa_2021.svg/64px-Visa_2021.svg.png?20240313022811"></a>
+             <!-- Apple Pay -->
+            <a title="Original:  Apple Inc., Public domain, via Wikimedia Commons" href="https://commons.wikimedia.org/wiki/File:Apple_Pay_logo_2014.svg"><img width="64" alt="Apple Pay logo 2014" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Apple_Pay_logo_2014.svg/64px-Apple_Pay_logo_2014.svg.png?20210805014230"></a>
         </div>
         <button class="checkout-now">Checkout Now >>></button>
     </div>
