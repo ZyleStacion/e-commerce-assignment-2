@@ -262,11 +262,16 @@
                      height="60" alt="Apple Pay Logo">
             </div>
         </div>
-        <button class="checkout-now">Checkout Now >>></button>
+        <button class="checkout-now" onclick="goToCheckout()">Checkout Now >>></button>
     </div>
 </div>
 
 <script>
+    // Navigate to checkout page
+    function goToCheckout() {
+        // Redirect to checkout page (cart data is already stored on server)
+        window.location.href = '/checkout';
+    }
     // Get the quantity and change the items' info
     function updateQuantity() {
         // Fetch quantities

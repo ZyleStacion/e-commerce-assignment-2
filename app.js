@@ -30,6 +30,11 @@ app.get('/cart', (req, res) => {
   res.render('cart', { shoppingCart: storedCartData });
 })
 
+// Checkout route
+app.get('/checkout', (req, res) => {
+  res.render('checkout', { shoppingCart: storedCartData });
+})
+
 // API endpoint recieves cart data
 app.post('/api/cart', (req, res) => {
   const cartData = req.body;
