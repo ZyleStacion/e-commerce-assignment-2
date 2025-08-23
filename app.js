@@ -32,7 +32,15 @@ app.get('/cart', (req, res) => {
 
 // Checkout route
 app.get('/checkout', (req, res) => {
-  res.render('checkout', { shoppingCart: storedCartData });
+  // Calculate total
+  const total = storedCartData.reduce((sum, item) => {
+    return sum + (item.quantity * parseFloat(item.price));
+  }, 0);
+  
+  res.render('checkout', { 
+    shoppingCart: storedCartData,
+    total: total
+  });
 })
 
 // API endpoint recieves cart data

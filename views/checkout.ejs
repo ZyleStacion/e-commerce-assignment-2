@@ -6,6 +6,10 @@
     <title>Checkout</title>
     <!-- Bootstrap core CSS -->
     <link href="assets/css/bootstrap.css" rel="stylesheet">
+    
+    <!-- PayPal SDK -->
+    <script src="https://www.paypal.com/sdk/js?client-id=YOUR_CLIENT_ID&components=hosted-fields"></script>
+    
     <style>
         .checkout-container {
             width: 90%;
@@ -105,6 +109,38 @@
         .back-to-cart:hover {
             background-color: #5a6268;
         }
+
+        /* PayPal Hosted Fields Styles */
+        .hosted-field {
+            height: 50px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .hosted-field.invalid {
+            border-color: #dc3545;
+        }
+
+        .hosted-field.valid {
+            border-color: #28a745;
+        }
+
+        .field-error {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        #paypal-button-container {
+            margin-top: 20px;
+        }
+        
+        .place-order-btn {
+            margin-top: 6px;
+        }
     </style>
 </head>
 <body>
@@ -201,26 +237,32 @@
                 <div class="customer-info">
                     <div>
                         <div class="form-group">
-                            <label for="cardNumber">Card Number *</label>
-                            <input type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456">
+                            <label for="card-number">Card Number *</label>
+                            <div id="card-number" class="hosted-field"></div>
+                            <div id="card-number-error" class="field-error"></div>
                         </div>
                         <div class="form-group">
                             <label for="cardName">Name on Card *</label>
-                            <input type="text" id="cardName" name="cardName">
+                            <input type="text" id="cardName" name="cardName" required>
                         </div>
                     </div>
                     <div>
                         <div class="form-group">
-                            <label for="expiryDate">Expiry Date *</label>
-                            <input type="text" id="expiryDate" name="expiryDate" placeholder="MM/YY">
+                            <label for="expiration-date">Expiry Date *</label>
+                            <div id="expiration-date" class="hosted-field"></div>
+                            <div id="expiration-date-error" class="field-error"></div>
                         </div>
                         <div class="form-group">
                             <label for="cvv">CVV *</label>
-                            <input type="text" id="cvv" name="cvv" placeholder="123">
+                            <div id="cvv" class="hosted-field"></div>
+                            <div id="cvv-error" class="field-error"></div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- PayPal Button Container -->
+            <div id="paypal-button-container" style="display: none;"></div>
         </div>
 
         <!-- Action Buttons -->
@@ -231,23 +273,176 @@
     </form>
 </div>
 
+<!-- Pass server data to JavaScript -->
+<script type="application/json" id="cart-data">
+<%- JSON.stringify({
+    total: total || 0,
+    items: shoppingCart || []
+}) %>
+</script>
+
 <script>
-    // Show/hide credit card fields based on payment method
+    // Get cart data from server
+    const cartData = JSON.parse(document.getElementById('cart-data').textContent);
+    const CART_TOTAL = cartData.total;
+    
+    let hostedFieldsInstance;
+    let paypalButtonsInstance;
+
+    // Initialize PayPal SDK when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initializePayPalHostedFields();
+        initializePayPalButtons();
+    });
+
+    // Initialize PayPal Hosted Fields
+    function initializePayPalHostedFields() {
+        if (window.paypal && window.paypal.HostedFields && window.paypal.HostedFields.isEligible()) {
+            window.paypal.HostedFields.render({
+                createOrder: function() {
+                    return fetch('/api/orders', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            // Add order data here
+                            total: CART_TOTAL
+                        })
+                    }).then(function(res) {
+                        return res.json();
+                    }).then(function(orderData) {
+                        return orderData.id;
+                    });
+                },
+                
+                styles: {
+                    '.valid': {
+                        'color': 'green'
+                    },
+                    '.invalid': {
+                        'color': 'red'
+                    }
+                },
+                
+                fields: {
+                    number: {
+                        selector: '#card-number',
+                        placeholder: '1234 5678 9012 3456'
+                    },
+                    cvv: {
+                        selector: '#cvv',
+                        placeholder: '123'
+                    },
+                    expirationDate: {
+                        selector: '#expiration-date',
+                        placeholder: 'MM/YY'
+                    }
+                }
+                
+            }).then(function(hostedFields) {
+                hostedFieldsInstance = hostedFields;
+                
+                // Handle field validation
+                hostedFields.on('validityChange', function(event) {
+                    const field = event.fields[event.emittedBy];
+                    const fieldElement = document.querySelector('#' + event.emittedBy);
+                    const errorElement = document.querySelector('#' + event.emittedBy + '-error');
+                    
+                    if (field.isValid) {
+                        fieldElement.classList.remove('invalid');
+                        fieldElement.classList.add('valid');
+                        errorElement.textContent = '';
+                    } else {
+                        fieldElement.classList.remove('valid');
+                        fieldElement.classList.add('invalid');
+                        errorElement.textContent = field.isPotentiallyValid ? '' : 'Invalid ' + event.emittedBy;
+                    }
+                });
+                
+            }).catch(function(err) {
+                console.error('PayPal Hosted Fields error:', err);
+            });
+        } else {
+            console.log('PayPal Hosted Fields not eligible');
+        }
+    }
+
+    // Initialize PayPal Buttons
+    function initializePayPalButtons() {
+        if (window.paypal && window.paypal.Buttons) {
+            paypalButtonsInstance = window.paypal.Buttons({
+                createOrder: function(data, actions) {
+                    return actions.order.create({
+                        purchase_units: [{
+                            amount: {
+                                value: CART_TOTAL.toFixed(2)
+                            }
+                        }]
+                    });
+                },
+                
+                onApprove: function(data, actions) {
+                    return actions.order.capture().then(function(details) {
+                        alert('Transaction completed by ' + details.payer.name.given_name);
+                        window.location.href = '/';
+                    });
+                },
+                
+                onError: function(err) {
+                    console.error('PayPal Buttons error:', err);
+                    alert('Payment failed. Please try again.');
+                }
+                
+            }).render('#paypal-button-container');
+        }
+    }
+
+    // Calculate cart total
+    function calculateCartTotal() {
+        return CART_TOTAL;
+    }
+
+    // Show/hide payment fields based on payment method
     document.getElementById('paymentMethod').addEventListener('change', function() {
         const creditCardFields = document.getElementById('credit-card-fields');
+        const paypalButtonContainer = document.getElementById('paypal-button-container');
+        const placeOrderBtn = document.querySelector('.place-order-btn');
+        
+        // Hide all payment sections first
+        creditCardFields.style.display = 'none';
+        paypalButtonContainer.style.display = 'none';
+        placeOrderBtn.style.display = 'block';
+        
         if (this.value === 'credit-card') {
             creditCardFields.style.display = 'block';
-        } else {
-            creditCardFields.style.display = 'none';
+        } else if (this.value === 'paypal') {
+            paypalButtonContainer.style.display = 'block';
+            placeOrderBtn.style.display = 'none'; // Hide place order button for PayPal
         }
     });
 
-    // Handle form submission
+    // Handle form submission for credit card payments
     document.getElementById('checkout-form').addEventListener('submit', function(e) {
         e.preventDefault();
-        alert('Order placed successfully! Thank you for your purchase.');
-        // Here you would normally process the order
-        window.location.href = '/';
+        
+        const paymentMethod = document.getElementById('paymentMethod').value;
+        
+        if (paymentMethod === 'credit-card' && hostedFieldsInstance) {
+            // Submit hosted fields
+            hostedFieldsInstance.submit().then(function(payload) {
+                console.log('Payment successful:', payload);
+                alert('Order placed successfully! Thank you for your purchase.');
+                window.location.href = '/';
+            }).catch(function(err) {
+                console.error('Payment error:', err);
+                alert('Payment failed. Please check your card details and try again.');
+            });
+        } else {
+            // Handle other payment methods
+            alert('Order placed successfully! Thank you for your purchase.');
+            window.location.href = '/';
+        }
     });
 
     // Go back to cart
