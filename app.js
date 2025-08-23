@@ -3,6 +3,22 @@ const router = require('router');
 const express = require('express');
 const app = express();
 
+/**
+ *  PayPal backend dependencies 
+ * */
+import {
+    ApiError,
+    CheckoutPaymentIntent,
+    Client,
+    Environment,
+    LogLevel,
+    OrdersController,
+    PaymentsController,
+    PaypalExperienceLandingPage,
+    PaypalExperienceUserAction,
+    ShippingPreference,
+} from "@paypal/paypal-server-sdk";
+import bodyParser from "body-parser";
 // Configure environment variables
 require('dotenv').config();
 const clientId = process.env.PAYPAL_CLIENT_ID;
@@ -40,6 +56,26 @@ const client = new Client({
 
 const ordersController = new OrdersController(client);
 const paymentsController = new PaymentsController(client);
+
+/**
+ * Order handling
+ */
+const createOrder = async (cart) => {
+  const collect = {
+    body: {
+      intent: "CAPTURE",
+      purchaseUnits: [
+        {
+          amount: {
+              currencyCode: "USD",
+              value: storedCartData.total,
+              breakdown: {
+                item.TOtal:
+              }
+      ]
+    }
+  }
+}
 
 // Homepage
 app.get('/', (req, res) => {
