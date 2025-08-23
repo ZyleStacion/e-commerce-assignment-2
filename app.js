@@ -11,6 +11,7 @@ const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
 // Set view engine
 app.set('view engine', 'ejs');
 const path = require('path');
+const { ClientCredentialsAuthManager } = require('@paypal/paypal-server-sdk');
 app.set('views', path.join(__dirname, 'views'));
 
 // Configure assets
@@ -22,8 +23,23 @@ app.use(express.json());
 // Store cart data in memory
 let storedCartData = [];
 
-// For each product display
-// app.use('/products', productRoutes);
+// PayPal Backend
+const client = new Client({
+  ClientCredentialsAuthCredentials: {
+    oAuthClientId: clientId,
+    oAuthClientSecret: clientSecret
+  },
+  timeout: 0,
+  environment: Environment.Sandbox,
+  logging: {
+    logLevel: LogLevel.Info,
+    logRequest: { logBody: true },
+    logResponse: { logHeaders: true },
+  }
+})
+
+const ordersController = new OrdersController(client);
+const paymentsController = new PaymentsController(client);
 
 // Homepage
 app.get('/', (req, res) => {
