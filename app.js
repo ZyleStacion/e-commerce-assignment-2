@@ -3,6 +3,11 @@ const router = require('router');
 const express = require('express');
 const app = express();
 
+// Configure environment variables
+require('dotenv').config();
+const clientId = process.env.PAYPAL_CLIENT_ID;
+const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
+
 // Set view engine
 app.set('view engine', 'ejs');
 const path = require('path');
