@@ -44,7 +44,8 @@ app.get('/checkout', (req, res) => {
   
   res.render('checkout', { 
     shoppingCart: storedCartData,
-    total: total
+    total: total,
+    paypalClientId: clientId
   });
 })
 
