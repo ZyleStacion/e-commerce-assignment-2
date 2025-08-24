@@ -161,13 +161,10 @@
     <!-- Order Summary -->
     <div class="order-summary">
         <h3>Order Summary</h3>
-        <% let total = 0; %>
         <% shoppingCart.forEach(item => { %>
-            <% let itemTotal = item.quantity * parseFloat(item.price); %>
-            <% total += itemTotal; %>
             <div class="order-item">
                 <span><%= item.name %> (x<%= item.quantity %>)</span>
-                <span>$<%= itemTotal.toFixed(2) %></span>
+                <span>$<%= item.itemTotal.toFixed(2) %></span>
             </div>
         <% }) %>
         

@@ -213,7 +213,7 @@
                     <td class="item-quantity">
                         <input type="number" id="<%= item.id %>-qty" value="<%= item.quantity %>" min="1" data-item="<%= item.name %>">
                     </td>
-                    <td class="item-total">$<%= (item.quantity * item.price).toFixed(2) %></td>
+                    <td class="item-total">$<%= item.itemTotal.toFixed(2) %></td>
                 </tr>
             <% }) %>
             
