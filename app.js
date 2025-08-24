@@ -181,6 +181,20 @@ app.post('/api/orders/:orderID/capture', async (req, res) => {
   }
 });
 
+// Success page route
+app.get('/success', (req, res) => {
+  // Clear the cart after successful payment
+  const orderDetails = {
+    items: storedCartData,
+    total: storedCartData.reduce((sum, item) => sum + (item.quantity * parseFloat(item.price)), 0)
+  };
+  
+  // Clear the cart
+  storedCartData = [];
+  
+  res.render('success', { orderDetails: orderDetails });
+});
+
 // API endpoint recieves cart data
 app.post('/api/cart', (req, res) => {
   const cartData = req.body;

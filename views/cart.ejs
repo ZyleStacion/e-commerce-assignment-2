@@ -119,6 +119,35 @@
             padding-top: 20px;
         }
 
+        .cart-total {
+            background-color: #f8f9fa;
+            border: 2px solid #28a745;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: right;
+        }
+
+        .cart-total h3 {
+            margin: 0;
+            color: #28a745;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .cart-total .total-amount {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #28a745;
+            margin-top: 10px;
+        }
+
+        .cart-total .subtotal {
+            color: #6c757d;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
         .payment-methods {
             margin-top: 30px;
             text-align: left;
@@ -172,10 +201,6 @@
     </style>
     <!-- Link custom JavaScript -->
     <script src="assets/js/cart.js"></script>
-    <!-- Initialize the PayPal JavaScript-SDK -->
-    <script
-            src="https://www.paypal.com/sdk/js?client-id=AaUpbWUDPcpAFJNoxNLwH6oStwiHVagzhyfqBjdQ56zio9_dAFFqqUcRt9_FDGTDaKXsHsQOBuxG7rI4&buyer-country=US&currency=USD&components=buttons&enable-funding=venmo,paylater,card"
-            data-sdk-integration-source="developer-studio">
     </script>
 </head>
 <body>
@@ -226,6 +251,28 @@
             <% } %>
         </tbody>
     </table>
+
+    <!-- Grand Total Section -->
+    <% if (shoppingCart.length > 0) { %>
+        <% let grandTotal = 0; %>
+        <% shoppingCart.forEach(item => { %>
+            <% grandTotal += item.itemTotal; %>
+        <% }) %>
+        
+        <div class="cart-total">
+            <div class="subtotal">
+                Subtotal: $<%= grandTotal.toFixed(2) %>
+            </div>
+            <div class="subtotal">
+                Tax: $0.00
+            </div>
+            <div class="subtotal">
+                Shipping: Free
+            </div>
+            <hr style="border-color: #28a745;">
+            <h3>Grand Total: <span class="total-amount">$<%= grandTotal.toFixed(2) %></span></h3>
+        </div>
+    <% } %>
 
     <div class="edit-buttons">
         <button class="update-btn" onclick="updateQuantity()">UPDATE QTY</button>
@@ -279,6 +326,7 @@
 
         // Store updated quantities
         const updatedQuantities = [];
+        let newGrandTotal = 0;
 
         quantities.forEach(input => {
         const itemName = input.getAttribute('data-item');
@@ -292,6 +340,9 @@
         const newTotal = (price * itemQuantity).toFixed(2);
         const totalCell = row.querySelector('.item-total');
         totalCell.textContent = `$${newTotal}`;
+        
+        // Add to grand total
+        newGrandTotal += parseFloat(newTotal);
             
         console.log(`${itemName}: ${itemQuantity} * $${price} = $${newTotal}`);
 
@@ -302,6 +353,28 @@
         
         console.log(`${itemName}: ${input.value}`);
         });
+        
+        // Update grand total display
+        updateGrandTotal(newGrandTotal);
+    }
+    
+    // Function to update grand total display
+    function updateGrandTotal(total) {
+        const cartTotal = document.querySelector('.cart-total');
+        if (cartTotal) {
+            const subtotalElements = cartTotal.querySelectorAll('.subtotal');
+            const totalAmountElement = cartTotal.querySelector('.total-amount');
+            
+            // Update subtotal (first element)
+            if (subtotalElements[0]) {
+                subtotalElements[0].textContent = `Subtotal: $${total.toFixed(2)}`;
+            }
+            
+            // Update grand total
+            if (totalAmountElement) {
+                totalAmountElement.textContent = `$${total.toFixed(2)}`;
+            }
+        }
     }
 
     // Delete items that are selected
@@ -320,16 +393,16 @@
             removedItems.push(checkbox.value);
         })
 
-        // Remove it from the able
+        // Remove it from the table
         selectedItems.forEach(checkbox => {
             const row = checkbox.closest('tr');
             row.remove()
         })
 
-        // Render error if cart is empty
-        const items = document.querySelectorAll('.cart-item');
+        // Check if cart is empty by counting remaining cart-item rows
+        const remainingItems = document.querySelectorAll('tr.cart-item');
         
-        if (items.length === 0) {
+        if (remainingItems.length === 0) {
             const tbody = document.querySelector('.cart-table tbody');
             tbody.innerHTML = `
                 <tr>
@@ -338,7 +411,34 @@
                     </td>
                 </tr>
             `;
+            
+            // Hide grand total section when cart is empty
+            const cartTotal = document.querySelector('.cart-total');
+            if (cartTotal) {
+                cartTotal.style.display = 'none';
+            }
+        } else {
+            // Recalculate grand total after removal only if items remain
+            recalculateGrandTotal();
         }
+    }
+    
+    // Function to recalculate grand total from current table values
+    function recalculateGrandTotal() {
+        const totalCells = document.querySelectorAll('tr.cart-item .item-total');
+        let newGrandTotal = 0;
+        
+        console.log('Recalculating grand total, found', totalCells.length, 'items');
+        
+        totalCells.forEach(cell => {
+            const totalText = cell.textContent.replace('$', '').trim();
+            const itemTotal = parseFloat(totalText) || 0;
+            newGrandTotal += itemTotal;
+            console.log('Item total:', totalText, 'Parsed:', itemTotal);
+        });
+        
+        console.log('New grand total:', newGrandTotal);
+        updateGrandTotal(newGrandTotal);
     }
 
 </script>
