@@ -4,16 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout</title>
+    
     <!-- Bootstrap core CSS -->
     <link href="assets/css/bootstrap.css" rel="stylesheet">
     
     <!-- PayPal SDK -->
     <script src="https://www.paypal.com/sdk/js?client-id=<%= paypalClientId %>&components=buttons&disable-funding=venmo,paylater,card"></script>
+
+    <!-- Google Pay JS CDN -->
+    <script type="text/javascript" src="assets/js/gpay.js"></script>
+    <script
+        async src="https://pay.google.com/gp/p/js/pay.js"
+        onload="onGooglePayLoaded()">
+    </script>
     
+    <!-- PayPal Custom JavaScript -->
+    <script type="text/javascript" src="assets/js/paypal.js"></script>
+
     <!-- Apple Pay SDK -->
     <script crossorigin 
       src="https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js" crossorigin="anonymous"> 
     </script>
+
 
     <style>
         .checkout-container {
@@ -251,16 +263,6 @@
 
             <!-- Google Pay Button Container -->
             <div id="gpay-container" style="display: none;"></div>
-
-            <!-- Google Pay SDK -->
-            <script type="text/javascript" src="assets/js/gpay.js"></script>
-            <script
-                async src="https://pay.google.com/gp/p/js/pay.js"
-                onload="onGooglePayLoaded()">
-            </script>
-            
-            <!-- PayPal JavaScript -->
-            <script type="text/javascript" src="assets/js/paypal.js"></script>
         </div>
 
         <!-- Action Buttons -->
