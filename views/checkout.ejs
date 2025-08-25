@@ -267,6 +267,14 @@
 
             <!-- PayPal Button Container -->
             <div id="paypal-button-container" style="display: none;"></div>
+
+            <!-- Google Pay Button Container -->
+            <div id="gpay-container" style="display: none;"></div>
+            <script type="text/javascript" src="assets/js/gpay.js"></script>
+            <script
+                async src="https://pay.google.com/gp/p/js/pay.js"
+                onload="onGooglePayLoaded()">
+            </script>
         </div>
 
         <!-- Action Buttons -->
@@ -418,11 +426,13 @@
     document.getElementById('paymentMethod').addEventListener('change', function() {
         const creditCardFields = document.getElementById('credit-card-fields');
         const paypalButtonContainer = document.getElementById('paypal-button-container');
+        const gpayContainer = document.getElementById('gpay-container');
         const placeOrderBtn = document.querySelector('.place-order-btn');
         
         // Hide all payment sections first
         creditCardFields.style.display = 'none';
         paypalButtonContainer.style.display = 'none';
+        gpayContainer.style.display = 'none';
         placeOrderBtn.style.display = 'block';
         
         if (this.value === 'credit-card') {
@@ -430,6 +440,9 @@
         } else if (this.value === 'paypal') {
             paypalButtonContainer.style.display = 'block';
             placeOrderBtn.style.display = 'none'; // Hide place order button for PayPal
+        } else if (this.value === 'google-pay') {
+            gpayContainer.style.display = 'block';
+            placeOrderBtn.style.display = 'none'; // Hide place order button for Google Pay
         }
     });
 
