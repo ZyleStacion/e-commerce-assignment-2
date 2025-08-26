@@ -26,17 +26,12 @@
       src="https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js" crossorigin="anonymous"> 
     </script>
 
-    <!-- Mastercard JS -->
-    <script src="https://src.mastercard.com/srci/integration/2/lib.js?srcDpaId=<%= srcDpaId %>&locale=en_US"></script>
+    <!-- Mastercard Gateway Hosted Checkout -->
+    <script src="https://ap-gateway.mastercard.com/static/checkout/checkout.min.js" 
+            data-error="mastercardErrorCallback" 
+            data-cancel="mastercardCancelCallback"
+            data-complete="mastercardCompleteCallback"></script>
     <script type="text/javascript" src="assets/js/mastercard.js"></script>
-
-    <!-- Mastercard UI elements -->
-    <script type="module" src="https://src.mastercard.com/srci/integration/components/src-ui-kit/src-ui-kit.esm.js"></script>
-    <link rel="stylesheet" href="https://src.mastercard.com/srci/integration/components/src-ui-kit/src-ui-kit.css">
-
-    <script>
-        window.mastercardDpaId = '<%= srcDpaId %>';
-    </script>
 
     <style>
         .checkout-container {

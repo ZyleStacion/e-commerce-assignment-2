@@ -26,7 +26,8 @@ import dotenv from 'dotenv';
 dotenv.config();
 const clientId = process.env.PAYPAL_CLIENT_ID;
 const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
-const mastercardDPA = process.env.MASTERCARD_DPA;
+const mastercardGatewayUsername = process.env.MASTERCARD_GATEWAY_USERNAME;
+const mastercardGatewayPassword = process.env.MASTERCARD_GATEWAY_PASSWORD;
 
 // Set view engine
 app.set('view engine', 'ejs');
@@ -158,10 +159,23 @@ app.get('/checkout', (req, res) => {
   res.render('checkout', { 
     shoppingCart: cartWithTotals,
     total: total,
-    paypalClientId: clientId,
-    srcDpaId: mastercardDPA
+    paypalClientId: clientId
   });
 })
+
+// Successful payment route
+app.get('/success', (req, res) => {
+  // Clear the cart after successful payment
+  const orderDetails = {
+    items: storedCartData,
+    total: storedCartData.reduce((sum, item) => sum + (item.quantity * parseFloat(item.price)), 0)
+  };
+  
+  // Clear the cart
+  storedCartData = [];
+  
+  res.render('success', { orderDetails: orderDetails });
+});
 
 // API endpoint to capture PayPal order
 app.post('/api/orders/:orderID/capture', async (req, res) => {
@@ -183,21 +197,7 @@ app.post('/api/orders/:orderID/capture', async (req, res) => {
   }
 });
 
-// Success page route
-app.get('/success', (req, res) => {
-  // Clear the cart after successful payment
-  const orderDetails = {
-    items: storedCartData,
-    total: storedCartData.reduce((sum, item) => sum + (item.quantity * parseFloat(item.price)), 0)
-  };
-  
-  // Clear the cart
-  storedCartData = [];
-  
-  res.render('success', { orderDetails: orderDetails });
-});
-
-// API endpoint recieves cart data
+// Send cart data to third-party payment APIs
 app.post('/api/cart', (req, res) => {
   const cartData = req.body;
   console.log("Cart data: ", cartData);
@@ -207,6 +207,93 @@ app.post('/api/cart', (req, res) => {
 
   res.json({ success:true, message: 'Cart data received successfully' })
 })
+
+// Process Mastercard payments
+app.post('/process-mastercard-payment', async (req, res) => {
+    try {
+        const { paymentData, amount, currency } = req.body;
+        
+        // Process the payment with Mastercard Gateway
+        // Implementation depends on your Mastercard Gateway setup
+        
+        res.json({ success: true, transactionId: 'MC_' + Date.now() });
+    } catch (error) {
+        console.error('Payment processing error:', error);
+        res.json({ success: false, error: error.message });
+    }
+});
+
+// Mastercard Hosted Checkout - Create Session
+app.post('/api/mastercard/create-session', async (req, res) => {
+    try {
+        const { amount, currency, orderId } = req.body;
+        
+        console.log('Creating Mastercard session for amount:', amount);
+        
+        // Note: This is a placeholder implementation
+        // In production, you would call Mastercard's API to create a real session
+        // For now, we'll return a mock session ID for testing
+        
+        const mockSessionId = 'SESSION_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+        
+        // In a real implementation, you would make an API call like:
+        // const mastercardResponse = await fetch('https://ap-gateway.mastercard.com/api/rest/version/xx/merchant/xxx/session', {
+        //     method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //         'Authorization': 'Basic ' + Buffer.from(username + ':' + password).toString('base64')
+        //     },
+        //     body: JSON.stringify({
+        //         apiOperation: 'INITIATE_CHECKOUT',
+        //         order: {
+        //             id: orderId,
+        //             amount: amount,
+        //             currency: currency
+        //         }
+        //     })
+        // });
+        
+        res.json({ 
+            success: true, 
+            sessionId: mockSessionId,
+            message: 'Session created successfully (mock implementation)'
+        });
+        
+    } catch (error) {
+        console.error('Mastercard session creation error:', error);
+        res.json({ success: false, error: error.message });
+    }
+});
+
+// Mastercard Hosted Checkout - Process Result
+app.post('/api/mastercard/process-result', async (req, res) => {
+    try {
+        const { resultIndicator, sessionId } = req.body;
+        
+        console.log('Processing Mastercard result:', resultIndicator);
+        
+        // Note: This is a placeholder implementation
+        // In production, you would verify the payment result with Mastercard's API
+        
+        // In a real implementation, you would make an API call like:
+        // const mastercardResponse = await fetch(`https://ap-gateway.mastercard.com/api/rest/version/xx/merchant/xxx/session/${sessionId}`, {
+        //     method: 'GET',
+        //     headers: {
+        //         'Authorization': 'Basic ' + Buffer.from(username + ':' + password).toString('base64')
+        //     }
+        // });
+        
+        res.json({ 
+            success: true, 
+            transactionId: 'MC_HOSTED_' + Date.now(),
+            message: 'Payment processed successfully (mock implementation)'
+        });
+        
+    } catch (error) {
+        console.error('Mastercard result processing error:', error);
+        res.json({ success: false, error: error.message });
+    }
+});
 
 const port = 3000;
 app.listen(port, () => {
