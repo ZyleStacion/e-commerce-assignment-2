@@ -30,6 +30,14 @@
     <script src="https://src.mastercard.com/srci/integration/2/lib.js?srcDpaId=<%= srcDpaId %>&locale=en_US"></script>
     <script type="text/javascript" src="assets/js/mastercard.js"></script>
 
+    <!-- Mastercard UI elements -->
+    <script type="module" src="https://src.mastercard.com/srci/integration/components/src-ui-kit/src-ui-kit.esm.js"></script>
+    <link rel="stylesheet" href="https://src.mastercard.com/srci/integration/components/src-ui-kit/src-ui-kit.css">
+
+    <script>
+        window.mastercardDpaId = '<%= srcDpaId %>';
+    </script>
+
     <style>
         .checkout-container {
             width: 90%;
@@ -130,7 +138,7 @@
             background-color: #5a6268;
         }
 
-        #paypal-button-container, #gpay-container, #mastercard-button-container, #visa-button-container {
+        #paypal-button-container, #gpay-container, #visa-button-container {
             margin-top: 20px;
             display: flex;
             justify-content: center;
@@ -140,6 +148,11 @@
             margin-left: auto;
             margin-right: auto;
         }
+        
+        #mastercard-button-container {
+            margin-top: 20px auto;
+            text-align: center;
+        } 
         
         .place-order-btn {
             margin-top: 6px;
@@ -177,6 +190,7 @@
         <% } %>
     </div>
 
+    <form id="checkout-form" method="post" action="/">
         <!-- Payment Information -->
         <div class="payment-section">
             <h3>Payment Information</h3>
@@ -189,34 +203,6 @@
                     <option value="paypal">PayPal</option>
                     <option value="google-pay">Google Pay</option>
                 </select>
-            </div>
-            
-            <div id="credit-card-fields" style="display: none;">
-                <div class="customer-info">
-                    <div>
-                        <div class="form-group">
-                            <label for="card-number">Card Number *</label>
-                            <div id="card-number" class="hosted-field"></div>
-                            <div id="card-number-error" class="field-error"></div>
-                        </div>
-                        <div class="form-group">
-                            <label for="cardName">Name on Card *</label>
-                            <input type="text" id="cardName" name="cardName" required>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="form-group">
-                            <label for="expiration-date">Expiry Date *</label>
-                            <div id="expiration-date" class="hosted-field"></div>
-                            <div id="expiration-date-error" class="field-error"></div>
-                        </div>
-                        <div class="form-group">
-                            <label for="cvv">CVV *</label>
-                            <div id="cvv" class="hosted-field"></div>
-                            <div id="cvv-error" class="field-error"></div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Mastercard Button Container -->
@@ -260,24 +246,38 @@
 
     // Show/hide payment fields based on payment method
     document.getElementById('paymentMethod').addEventListener('change', function() {
-        const creditCardFields = document.getElementById('credit-card-fields');
         const paypalButtonContainer = document.getElementById('paypal-button-container');
         const gpayContainer = document.getElementById('gpay-container');
         const mastercardContainer = document.getElementById('mastercard-button-container');
         const visaContainer = document.getElementById('visa-button-container');
         const placeOrderBtn = document.querySelector('.place-order-btn');
         
+        // Check if all elements exist
+        if (!mastercardContainer) {
+            console.error('mastercardContainer not found');
+            return;
+        }
+        
         // Hide all payment sections first
-        creditCardFields.style.display = 'none';
-        paypalButtonContainer.style.display = 'none';
-        gpayContainer.style.display = 'none';
-        mastercardContainer.style.display = 'none';
-        visaContainer.style.display = 'none';
-        placeOrderBtn.style.display = 'block';
+        if (paypalButtonContainer) paypalButtonContainer.style.display = 'none';
+        if (gpayContainer) gpayContainer.style.display = 'none';
+        if (mastercardContainer) mastercardContainer.style.display = 'none';
+        if (visaContainer) visaContainer.style.display = 'none';
+        if (placeOrderBtn) placeOrderBtn.style.display = 'block';
         
         if (this.value === 'mastercard') {
-            mastercardContainer.style.display = 'block';
-            placeOrderBtn.style.display = 'none';
+            if (mastercardContainer) {
+                mastercardContainer.style.display = 'block';
+                console.log('Mastercard container shown');
+            }
+            if (placeOrderBtn) placeOrderBtn.style.display = 'none';
+            // Render Mastercard SRC button
+            if (typeof renderMastercardButton === 'function') {
+                console.log('Calling renderMastercardButton');
+                renderMastercardButton();
+            } else {
+                console.error('renderMastercardButton function not found');
+            }
         } else if (this.value === 'visa') {
             visaContainer.style.display = 'block';
             placeOrderBtn.style.display = 'none';
