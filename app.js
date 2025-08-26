@@ -26,6 +26,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 const clientId = process.env.PAYPAL_CLIENT_ID;
 const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
+const mastercardDPA = process.env.MASTERCARD_DPA;
 
 // Set view engine
 app.set('view engine', 'ejs');
@@ -157,7 +158,8 @@ app.get('/checkout', (req, res) => {
   res.render('checkout', { 
     shoppingCart: cartWithTotals,
     total: total,
-    paypalClientId: clientId
+    paypalClientId: clientId,
+    srcDpaId: mastercardDPA
   });
 })
 

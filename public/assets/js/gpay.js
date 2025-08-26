@@ -86,9 +86,12 @@ function onGooglePayLoaded() {
     .isReadyToPay(req)
     .then(function(res) {
       if (res.result) {
-        renderGooglePayButton();
+        // Store the readiness state, but don't render the button yet
+        window.googlePayReady = true;
+        console.log("Google Pay is ready for this user.");
       } else {
         console.log("Google Pay is not ready for this user.");
+        window.googlePayReady = false;
       }
     })
     .catch(console.error);

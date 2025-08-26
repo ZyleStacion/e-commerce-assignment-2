@@ -10,4 +10,4 @@ Please run `npm install` for the following dependencies:
 Then run `node app` in a terminal of your choice. The web application will run on localhost:3000
 
 # About this page
-Alice's bikeshop is a simple web application written in Node.js that integrates PayPal, Google Pay, Stripe and Apple Pay for secure e-commerce transactions.
+Alice's bikeshop is a simple web application written in Node.js that integrates PayPal, Google Pay, Visa and Mastercard for secure e-commerce transactions.
