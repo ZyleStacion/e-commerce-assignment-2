@@ -26,13 +26,6 @@
       src="https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js" crossorigin="anonymous"> 
     </script>
 
-    <!-- Mastercard Gateway Hosted Checkout -->
-    <script src="https://ap-gateway.mastercard.com/static/checkout/checkout.min.js" 
-            data-error="mastercardErrorCallback" 
-            data-cancel="mastercardCancelCallback"
-            data-complete="mastercardCompleteCallback"></script>
-    <script type="text/javascript" src="assets/js/mastercard.js"></script>
-
     <style>
         .checkout-container {
             width: 90%;
@@ -144,11 +137,6 @@
             margin-right: auto;
         }
         
-        #mastercard-button-container {
-            margin-top: 20px auto;
-            text-align: center;
-        } 
-        
         .place-order-btn {
             margin-top: 6px;
         }
@@ -193,14 +181,14 @@
                 <label for="paymentMethod">Payment Method *</label>
                 <select id="paymentMethod" name="paymentMethod" required>
                     <option value="">Select Payment Method</option>
-                    <option value="mastercard">Mastercard</option>
+                    <option value="stripe">Cards (Stripe)</option>
                     <option value="visa">Visa</option>
                     <option value="paypal">PayPal</option>
                     <option value="google-pay">Google Pay</option>
                 </select>
             </div>
 
-            <!-- Mastercard Button Container -->
+            <!-- TODO: Stripe Button Container -->
             <div id="mastercard-button-container" style="display: none;"></div>
 
             <!-- Visa Button Container -->
