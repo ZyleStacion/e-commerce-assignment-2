@@ -305,5 +305,56 @@
     }
 </script>
 
+<!-- Mastercard Hosted Checkout Library with Callbacks -->
+<script src="https://ap-gateway.mastercard.com/static/checkout/checkout.min.js" 
+        data-error="mastercardErrorCallback" 
+        data-cancel="mastercardCancelCallback"
+        data-complete="mastercardCompleteCallback"></script>
+
+<script>
+    // Mastercard Hosted Checkout Callback Functions (Must be global)
+    function mastercardErrorCallback(error) {
+        console.error('Mastercard payment error:', error);
+        alert('Payment failed. Please try again or choose a different payment method.');
+    }
+
+    function mastercardCancelCallback() {
+        console.log('Mastercard payment cancelled by user');
+        alert('Payment was cancelled. You can try again or choose a different payment method.');
+    }
+
+    function mastercardCompleteCallback(resultIndicator) {
+        console.log('Mastercard payment completed:', resultIndicator);
+        
+        // Process the payment result on server
+        fetch('/api/mastercard/process-result', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                resultIndicator: resultIndicator,
+                sessionId: window.mastercardSessionId || mastercardSessionId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('Mastercard payment processed successfully');
+                window.location.href = '/success?payment=mastercard&txn=' + (data.transactionId || '');
+            } else {
+                console.error('Mastercard payment processing failed:', data.error);
+                alert('Payment processing failed: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error processing Mastercard payment result:', error);
+            alert('Payment processing failed. Please contact support.');
+        });
+    }
+
+    // Get cart data
+    window.CART_TOTAL = cartData.total || 0;
+</script>
 </body>
 </html>
