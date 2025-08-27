@@ -21,10 +21,9 @@
     <!-- PayPal Custom JavaScript -->
     <script type="text/javascript" src="assets/js/paypal.js"></script>
 
-    <!-- Apple Pay SDK -->
-    <script crossorigin 
-      src="https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js" crossorigin="anonymous"> 
-    </script>
+    <!-- Add Stripe.js before your closing </head> tag -->
+    <script src="https://js.stripe.com/v3/"></script>
+    <script type="text/javascript" src="assets/js/stripe.js"></script>
 
     <style>
         .checkout-container {
@@ -106,10 +105,17 @@
             cursor: pointer;
             border-radius: 5px;
             width: 100%;
+            transition: background-color 0.3s ease;
         }
         
-        .place-order-btn:hover {
+        .place-order-btn:hover:not(:disabled) {
             background-color: #218838;
+        }
+        
+        .place-order-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.6;
         }
         
         .back-to-cart {
@@ -126,19 +132,45 @@
             background-color: #5a6268;
         }
 
-        #paypal-button-container, #gpay-container, #visa-button-container {
+        #paypal-button-container, #gpay-container, #visa-button-container, #stripe-button-container {
             margin-top: 20px;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             width: 100%;
-            max-width: 300px;
+            max-width: 400px;
             margin-left: auto;
             margin-right: auto;
+        }
+
+        /* Specific styling for Google Pay to ensure proper centering */
+        #gpay-container {
+            text-align: center;
+        }
+
+        #gpay-container > * {
+            margin: 0 auto;
         }
         
         .place-order-btn {
             margin-top: 6px;
+        }
+
+        #payment-element {
+            margin-bottom: 24px;
+        }
+
+        #payment-message {
+            color: rgb(105, 115, 134);
+            font-size: 16px;
+            line-height: 20px;
+            padding-top: 12px;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
         }
     </style>
 </head>
@@ -189,7 +221,15 @@
             </div>
 
             <!-- TODO: Stripe Button Container -->
-            <div id="mastercard-button-container" style="display: none;"></div>
+            <div id="stripe-button-container" style="display: none;">
+                <div id="payment-element">
+                    <!-- Payment Element will be inserted here -->
+                </div>
+                <button id="stripe-submit-button" class="place-order-btn" style="margin-top: 20px;">
+                    Pay with Stripe
+                </button>
+                <div id="payment-message" class="hidden"></div>
+            </div>
 
             <!-- Visa Button Container -->
             <div id="visa-button-container" style="display: none;"></div>
@@ -204,7 +244,7 @@
         <!-- Action Buttons -->
         <div style="text-align: center;">
             <button type="button" class="back-to-cart" onclick="goBackToCart()">← Back to Cart</button>
-            <button type="submit" class="place-order-btn">Place Order</button>
+            <button type="submit" class="place-order-btn" id="default-place-order-btn" style="display: none;">Place Order</button>
         </div>
     </form>
 </div>
@@ -221,6 +261,12 @@
     // Get cart data from server
     const cartData = JSON.parse(document.getElementById('cart-data').textContent);
     const CART_TOTAL = cartData.total;
+    
+    // Make cart total available globally for stripe.js
+    window.CART_TOTAL = CART_TOTAL;
+    
+    // Make Stripe publishable key available globally
+    window.STRIPE_PUBLISHABLE_KEY = '<%= stripePublishableKey %>';
 
     // Calculate cart total
     function calculateCartTotal() {
@@ -231,45 +277,34 @@
     document.getElementById('paymentMethod').addEventListener('change', function() {
         const paypalButtonContainer = document.getElementById('paypal-button-container');
         const gpayContainer = document.getElementById('gpay-container');
-        const mastercardContainer = document.getElementById('mastercard-button-container');
+        const stripeContainer = document.getElementById('stripe-button-container');
         const visaContainer = document.getElementById('visa-button-container');
-        const placeOrderBtn = document.querySelector('.place-order-btn');
-        
-        // Check if all elements exist
-        if (!mastercardContainer) {
-            console.error('mastercardContainer not found');
-            return;
-        }
+        const placeOrderBtn = document.getElementById('default-place-order-btn');
         
         // Hide all payment sections first
         if (paypalButtonContainer) paypalButtonContainer.style.display = 'none';
         if (gpayContainer) gpayContainer.style.display = 'none';
-        if (mastercardContainer) mastercardContainer.style.display = 'none';
+        if (stripeContainer) stripeContainer.style.display = 'none';
         if (visaContainer) visaContainer.style.display = 'none';
         if (placeOrderBtn) placeOrderBtn.style.display = 'block';
         
-        if (this.value === 'mastercard') {
-            if (mastercardContainer) {
-                mastercardContainer.style.display = 'block';
-                console.log('Mastercard container shown');
-            }
+        if (this.value === 'stripe') {
+            console.log("Displaying stripe button")
+            if (stripeContainer) stripeContainer.style.display = 'block';
             if (placeOrderBtn) placeOrderBtn.style.display = 'none';
-            // Render Mastercard SRC button
-            if (typeof renderMastercardButton === 'function') {
-                console.log('Calling renderMastercardButton');
-                renderMastercardButton();
-            } else {
-                console.error('renderMastercardButton function not found');
-            }
+            
+            // Initialize Stripe
+            initializeStripe();
+
         } else if (this.value === 'visa') {
-            visaContainer.style.display = 'block';
-            placeOrderBtn.style.display = 'none';
+            if (visaContainer) visaContainer.style.display = 'block';
+            if (placeOrderBtn) placeOrderBtn.style.display = 'none';
         } else if (this.value === 'paypal') {
-            paypalButtonContainer.style.display = 'block';
-            placeOrderBtn.style.display = 'none';
+            if (paypalButtonContainer) paypalButtonContainer.style.display = 'block';
+            if (placeOrderBtn) placeOrderBtn.style.display = 'none';
         } else if (this.value === 'google-pay') {
-            gpayContainer.style.display = 'block';
-            placeOrderBtn.style.display = 'none';
+            if (gpayContainer) gpayContainer.style.display = 'block';
+            if (placeOrderBtn) placeOrderBtn.style.display = 'none';
             // Render Google Pay button when selected
             if (window.googlePayReady && typeof renderGooglePayButton === 'function') {
                 // Clear existing button if any
@@ -291,58 +326,6 @@
     function goBackToCart() {
         window.location.href = '/cart';
     }
-</script>
-
-<!-- Mastercard Hosted Checkout Library with Callbacks -->
-<script src="https://ap-gateway.mastercard.com/static/checkout/checkout.min.js" 
-        data-error="mastercardErrorCallback" 
-        data-cancel="mastercardCancelCallback"
-        data-complete="mastercardCompleteCallback"></script>
-
-<script>
-    // Mastercard Hosted Checkout Callback Functions (Must be global)
-    function mastercardErrorCallback(error) {
-        console.error('Mastercard payment error:', error);
-        alert('Payment failed. Please try again or choose a different payment method.');
-    }
-
-    function mastercardCancelCallback() {
-        console.log('Mastercard payment cancelled by user');
-        alert('Payment was cancelled. You can try again or choose a different payment method.');
-    }
-
-    function mastercardCompleteCallback(resultIndicator) {
-        console.log('Mastercard payment completed:', resultIndicator);
-        
-        // Process the payment result on server
-        fetch('/api/mastercard/process-result', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                resultIndicator: resultIndicator,
-                sessionId: window.mastercardSessionId || mastercardSessionId
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                console.log('Mastercard payment processed successfully');
-                window.location.href = '/success?payment=mastercard&txn=' + (data.transactionId || '');
-            } else {
-                console.error('Mastercard payment processing failed:', data.error);
-                alert('Payment processing failed: ' + (data.error || 'Unknown error'));
-            }
-        })
-        .catch(error => {
-            console.error('Error processing Mastercard payment result:', error);
-            alert('Payment processing failed. Please contact support.');
-        });
-    }
-
-    // Get cart data
-    window.CART_TOTAL = cartData.total || 0;
 </script>
 </body>
 </html>

@@ -163,12 +163,35 @@ app.get('/checkout', (req, res) => {
   res.render('checkout', { 
     shoppingCart: cartWithTotals,
     total: total,
-    paypalClientId: clientId
+    paypalClientId: clientId,
+    stripePublishableKey: stripeId
   });
 })
 
 // Successful payment route
-app.get('/success', (req, res) => {
+app.get('/success', async (req, res) => {
+  const { payment_intent, payment_intent_client_secret } = req.query;
+  
+  // If coming from Stripe redirect, verify the payment status
+  if (payment_intent) {
+    try {
+      const Stripe = (await import('stripe')).default;
+      const stripe = Stripe(process.env.STRIPE_SECRET);
+      
+      // Retrieve the payment intent to check its status
+      const paymentIntent = await stripe.paymentIntents.retrieve(payment_intent);
+      
+      if (paymentIntent.status !== 'succeeded') {
+        // Payment didn't succeed, redirect to failure
+        const errorMessage = `Payment ${paymentIntent.status}. Please try again.`;
+        return res.redirect(`/failure?error=${encodeURIComponent(errorMessage)}&type=payment_status_error`);
+      }
+    } catch (error) {
+      console.error('Error verifying payment:', error);
+      return res.redirect(`/failure?error=${encodeURIComponent('Unable to verify payment status.')}&type=verification_error`);
+    }
+  }
+  
   // Clear the cart after successful payment
   const orderDetails = {
     items: storedCartData,
@@ -179,6 +202,19 @@ app.get('/success', (req, res) => {
   storedCartData = [];
   
   res.render('success', { orderDetails: orderDetails });
+});
+
+// Failed payment route
+app.get('/failure', (req, res) => {
+  const errorMessage = req.query.error || 'Payment failed. Please try again.';
+  const errorType = req.query.type || 'payment_error';
+  
+  res.render('failure', { 
+    errorMessage: errorMessage,
+    errorType: errorType,
+    cartItems: storedCartData,
+    total: storedCartData.reduce((sum, item) => sum + (item.quantity * parseFloat(item.price)), 0)
+  });
 });
 
 // API endpoint to capture PayPal order
@@ -211,6 +247,56 @@ app.post('/api/cart', (req, res) => {
 
   res.json({ success:true, message: 'Cart data received successfully' })
 })
+
+app.post('/create-payment-intent', async (req, res) => {
+    const { amount } = req.body;
+    
+    // Validate amount
+    if (!amount || amount <= 0) {
+        return res.status(400).json({ 
+            error: 'Invalid amount. Amount must be greater than 0.' 
+        });
+    }
+    
+    try {
+        // Import Stripe dynamically or add it as a top-level import
+        const Stripe = (await import('stripe')).default;
+        const stripe = Stripe(process.env.STRIPE_SECRET);
+        
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: Math.round(amount), // Ensure amount is an integer
+            currency: 'usd',
+            automatic_payment_methods: {
+                enabled: true,
+            },
+            metadata: {
+                // Add metadata for tracking
+                source: 'ecommerce_checkout',
+                timestamp: new Date().toISOString()
+            }
+        });
+        
+        res.json({ clientSecret: paymentIntent.client_secret });
+    } catch (e) {
+        console.error('Error creating payment intent:', e);
+        
+        // Return appropriate error message based on error type
+        let errorMessage = 'Unable to process payment. Please try again.';
+        
+        if (e.type === 'StripeCardError') {
+            errorMessage = 'Your card was declined. Please try a different payment method.';
+        } else if (e.type === 'StripeInvalidRequestError') {
+            errorMessage = 'Invalid payment request. Please check your information.';
+        } else if (e.type === 'StripeAPIError') {
+            errorMessage = 'Payment service temporarily unavailable. Please try again later.';
+        }
+        
+        res.status(400).json({ 
+            error: errorMessage,
+            type: e.type || 'payment_error'
+        });
+    }
+});
 
 const port = 3000;
 app.listen(port, () => {
