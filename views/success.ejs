@@ -138,6 +138,39 @@
                         <div class="text-center mb-4">
                             <h4 class="text-muted">Order Confirmation</h4>
                             <p class="lead">Your order has been processed and you will receive a confirmation email shortly.</p>
+                            
+                            <!-- Show crypto payment details if applicable -->
+                            <% 
+                            const urlParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+                            const paymentType = urlParams.get('payment');
+                            const cryptoType = urlParams.get('crypto');
+                            const txnHash = urlParams.get('txn');
+                            %>
+                            
+                            <script>
+                                // Check URL parameters for cryptocurrency payment details
+                                const urlParams = new URLSearchParams(window.location.search);
+                                const paymentType = urlParams.get('payment');
+                                const cryptoType = urlParams.get('crypto');
+                                const txnHash = urlParams.get('txn');
+                                
+                                if (paymentType === 'crypto' && cryptoType) {
+                                    const cryptoInfo = document.createElement('div');
+                                    cryptoInfo.className = 'alert alert-warning mt-3';
+                                    cryptoInfo.innerHTML = `
+                                        <h5><i class="fab fa-bitcoin me-2"></i>Cryptocurrency Payment Confirmed</h5>
+                                        <p><strong>Payment Method:</strong> ${cryptoType.toUpperCase()}</p>
+                                        ${txnHash ? `<p><strong>Transaction Hash:</strong> <code style="word-break: break-all;">${txnHash}</code></p>` : ''}
+                                        <small class="text-muted">Your cryptocurrency payment has been confirmed on the blockchain.</small>
+                                    `;
+                                    
+                                    // Insert after the order confirmation text
+                                    const confirmationDiv = document.querySelector('.text-center.mb-4');
+                                    if (confirmationDiv) {
+                                        confirmationDiv.appendChild(cryptoInfo);
+                                    }
+                                }
+                            </script>
                         </div>
                         
                         <!-- Order Summary -->
