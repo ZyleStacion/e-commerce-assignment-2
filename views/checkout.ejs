@@ -21,11 +21,11 @@
     <!-- PayPal Custom JavaScript -->
     <script type="text/javascript" src="assets/js/paypal.js"></script>
 
-    <!-- Add Stripe.js before your closing </head> tag -->
+    <!-- Stripe JS for credit cards -->
     <script src="https://js.stripe.com/v3/"></script>
     <script type="text/javascript" src="assets/js/stripe.js"></script>
-    
-    <!-- Coinremitter Cryptocurrency JavaScript -->
+
+    <!-- Coinremitter for Crypto -->
     <script type="text/javascript" src="assets/js/coinremitter.js"></script>
 
     <style>
@@ -135,7 +135,7 @@
             background-color: #5a6268;
         }
 
-        #paypal-button-container, #gpay-container, #visa-button-container, #stripe-button-container, #crypto-button-container {
+        #paypal-button-container, #gpay-container, #visa-button-container, #stripe-button-container {
             margin-top: 20px;
             display: flex;
             flex-direction: column;
@@ -145,7 +145,7 @@
             max-width: 400px;
             margin-left: auto;
             margin-right: auto;
-        }
+        }bidew 
 
         /* Specific styling for Google Pay to ensure proper centering */
         #gpay-container {
@@ -217,10 +217,9 @@
                 <select id="paymentMethod" name="paymentMethod" required>
                     <option value="">Select Payment Method</option>
                     <option value="stripe">Cards (Stripe)</option>
-                    <option value="visa">Visa</option>
+                    <option value="crypto">Crypto</option>
                     <option value="paypal">PayPal</option>
                     <option value="google-pay">Google Pay</option>
-                    <option value="crypto">Cryptocurrency (Bitcoin, Ethereum, etc.)</option>
                 </select>
             </div>
 
@@ -235,17 +234,14 @@
                 <div id="payment-message" class="hidden"></div>
             </div>
 
-            <!-- Visa Button Container -->
-            <div id="visa-button-container" style="display: none;"></div>
+            <!-- Crypto Button Container -->
+            <div id="crypto-button-container" style="display: none;"></div>
 
             <!-- PayPal Button Container -->
             <div id="paypal-button-container" style="display: none;"></div>
 
             <!-- Google Pay Button Container -->
             <div id="gpay-container" style="display: none;"></div>
-            
-            <!-- Cryptocurrency Payment Container -->
-            <div id="crypto-button-container" style="display: none;"></div>
         </div>
 
         <!-- Action Buttons -->
@@ -285,7 +281,6 @@
         const paypalButtonContainer = document.getElementById('paypal-button-container');
         const gpayContainer = document.getElementById('gpay-container');
         const stripeContainer = document.getElementById('stripe-button-container');
-        const visaContainer = document.getElementById('visa-button-container');
         const cryptoContainer = document.getElementById('crypto-button-container');
         const placeOrderBtn = document.getElementById('default-place-order-btn');
         
@@ -293,21 +288,21 @@
         if (paypalButtonContainer) paypalButtonContainer.style.display = 'none';
         if (gpayContainer) gpayContainer.style.display = 'none';
         if (stripeContainer) stripeContainer.style.display = 'none';
-        if (visaContainer) visaContainer.style.display = 'none';
         if (cryptoContainer) cryptoContainer.style.display = 'none';
         if (placeOrderBtn) placeOrderBtn.style.display = 'block';
         
         if (this.value === 'stripe') {
-            console.log("Displaying stripe button")
             if (stripeContainer) stripeContainer.style.display = 'block';
             if (placeOrderBtn) placeOrderBtn.style.display = 'none';
-            
             // Initialize Stripe
             initializeStripe();
-
-        } else if (this.value === 'visa') {
-            if (visaContainer) visaContainer.style.display = 'block';
+        } else if (this.value === 'crypto') {
+            if (cryptoContainer) cryptoContainer.style.display = 'block';
             if (placeOrderBtn) placeOrderBtn.style.display = 'none';
+            // Initialize Coinremitter UI/buttons
+            if (typeof renderCoinremitterButtons === 'function') {
+                renderCoinremitterButtons();
+            }
         } else if (this.value === 'paypal') {
             if (paypalButtonContainer) paypalButtonContainer.style.display = 'block';
             if (placeOrderBtn) placeOrderBtn.style.display = 'none';
@@ -319,13 +314,6 @@
                 // Clear existing button if any
                 gpayContainer.innerHTML = '';
                 renderGooglePayButton();
-            }
-        } else if (this.value === 'crypto') {
-            if (cryptoContainer) cryptoContainer.style.display = 'block';
-            if (placeOrderBtn) placeOrderBtn.style.display = 'none';
-            // Initialize cryptocurrency payment buttons
-            if (typeof initializeCoinremitterPayment === 'function') {
-                initializeCoinremitterPayment();
             }
         }
     });
