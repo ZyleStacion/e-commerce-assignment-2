@@ -154,9 +154,33 @@ function showCryptoPaymentDetails(invoice, crypto) {
                 <strong style="color: #856404;">⏰ Payment expires in: <span id="countdown-${invoice.invoice_id}" style="color: #d63384; font-size: 18px;">15:00</span></strong>
             </div>
             
+            <!-- Manual Transaction Verification Section -->
+            <div id="manual-verification-${invoice.invoice_id}" style="margin: 20px 0; padding: 15px; background: #e7f3ff; border: 2px solid #0066cc; border-radius: 8px; display: none;">
+                <h6 style="color: #004499; margin-bottom: 10px;">🔍 Already sent payment? Verify your transaction:</h6>
+                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+                    <input 
+                        type="text" 
+                        id="txn-hash-${invoice.invoice_id}" 
+                        placeholder="Enter transaction hash (e.g., 0x1234...)" 
+                        style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;"
+                    >
+                    <button 
+                        onclick="verifyManualTransaction('${invoice.invoice_id}')" 
+                        class="btn btn-primary btn-sm">
+                        Verify
+                    </button>
+                </div>
+                <small style="color: #666;">
+                    Enter your transaction hash to instantly verify payment
+                </small>
+            </div>
+            
             <div style="text-align: center; margin-top: 25px;">
                 <button onclick="checkPaymentStatus('${invoice.invoice_id}')" class="btn btn-warning btn-lg" style="margin-right: 10px;">
                     🔍 Check Payment Status
+                </button>
+                <button onclick="showManualVerification('${invoice.invoice_id}')" class="btn btn-info" style="margin-right: 10px;">
+                    📝 I Sent Payment
                 </button>
                 <button onclick="cancelCryptoPayment()" class="btn btn-secondary">
                     ❌ Cancel
@@ -164,6 +188,7 @@ function showCryptoPaymentDetails(invoice, crypto) {
             </div>
             
             <div id="payment-status-${invoice.invoice_id}" style="margin-top: 20px;"></div>
+            <div id="verification-status-${invoice.invoice_id}" style="margin-top: 15px;"></div>
         </div>
     `;
     
@@ -223,52 +248,82 @@ async function checkPaymentStatus(invoiceId) {
         if (data.success) {
             const status = data.status;
             
-            if (status === 'paid' || status === 'confirmed') {
-                // Payment successful
+            if (status === 'confirmed' && data.payment_verified) {
+                // ✅ PAYMENT PASSED
                 clearInterval(window.countdownInterval);
                 clearInterval(window.paymentStatusInterval);
                 
                 statusDiv.innerHTML = `
                     <div style="background: #d4edda; border: 2px solid #28a745; color: #155724; padding: 15px; border-radius: 8px; text-align: center;">
-                        <h5>✅ Payment Confirmed!</h5>
-                        <p>Transaction Hash: <code>${data.transactionHash || 'N/A'}</code></p>
-                        <p>Redirecting to success page...</p>
+                        <h5>✅ PAYMENT VERIFIED - PASS!</h5>
+                        <p><strong>Status:</strong> Payment Confirmed</p>
+                        <p><strong>Confirmations:</strong> ${data.confirmations}/${data.confirmations_required}</p>
+                        <p><strong>Network:</strong> ${data.network}</p>
+                        ${data.transactionHash ? `<p><strong>Transaction:</strong> <code style="word-break: break-all; font-size: 11px;">${data.transactionHash}</code></p>` : ''}
+                        <p><strong>Verification Attempts:</strong> ${data.verification_attempts}</p>
+                        <p style="margin-top: 10px; font-weight: bold;">Redirecting to success page...</p>
                     </div>
                 `;
                 
                 setTimeout(() => {
-                    window.location.href = `/success?payment=crypto&crypto=${data.crypto || ''}&txn=${data.transactionHash || invoiceId}`;
+                    window.location.href = `/success?payment=crypto&crypto=${data.crypto}&txn=${data.transactionHash}&verified=true`;
                 }, 3000);
                 
             } else if (status === 'pending') {
                 statusDiv.innerHTML = `
                     <div style="background: #fff3cd; border: 2px solid #ffc107; color: #856404; padding: 15px; border-radius: 8px; text-align: center;">
-                        <strong>⏳ Payment detected, waiting for blockchain confirmation...</strong>
-                        <p>Confirmations: ${data.confirmations || 0}</p>
+                        <h6>⏳ VERIFICATION IN PROGRESS</h6>
+                        <p><strong>Status:</strong> Payment detected, verifying...</p>
+                        <p><strong>Confirmations:</strong> ${data.confirmations || 0}/${data.confirmations_required}</p>
+                        <p><strong>Attempts:</strong> ${data.verification_attempts}</p>
+                        <small>Last checked: ${new Date(data.last_verified).toLocaleTimeString()}</small>
+                    </div>
+                `;
+            } else if (status === 'waiting') {
+                statusDiv.innerHTML = `
+                    <div style="background: #cce7ff; border: 2px solid #0066cc; color: #004499; padding: 15px; border-radius: 8px; text-align: center;">
+                        <h6>🔍 SCANNING FOR PAYMENT</h6>
+                        <p><strong>Status:</strong> Waiting for transaction</p>
+                        <p><strong>Address:</strong> Monitoring blockchain</p>
+                        <p><strong>Attempts:</strong> ${data.verification_attempts}</p>
+                        ${data.failure_reason ? `<p style="color: #dc3545;"><strong>Note:</strong> ${data.failure_reason}</p>` : ''}
                     </div>
                 `;
             } else if (status === 'expired') {
+                // ❌ PAYMENT FAILED - EXPIRED
                 clearInterval(window.countdownInterval);
                 clearInterval(window.paymentStatusInterval);
                 
                 statusDiv.innerHTML = `
                     <div style="background: #f8d7da; border: 2px solid #dc3545; color: #721c24; padding: 15px; border-radius: 8px; text-align: center;">
-                        <strong>❌ Payment expired</strong>
-                        <p>Please create a new payment.</p>
+                        <h5>❌ PAYMENT FAILED - EXPIRED</h5>
+                        <p><strong>Reason:</strong> ${data.failure_reason || 'Payment window expired'}</p>
+                        <p><strong>Final Status:</strong> Transaction not received in time</p>
+                        <p><strong>Verification Attempts:</strong> ${data.verification_attempts}</p>
+                        <p style="margin-top: 10px;">Please create a new payment.</p>
                     </div>
                 `;
             }
         } else {
+            // ❌ PAYMENT FAILED - ERROR
             statusDiv.innerHTML = `
                 <div style="background: #f8d7da; border: 2px solid #dc3545; color: #721c24; padding: 15px; border-radius: 8px; text-align: center;">
-                    <strong>❌ Error checking payment status</strong>
-                    <p>${data.error || 'Unknown error'}</p>
+                    <h5>❌ VERIFICATION FAILED</h5>
+                    <p><strong>Error:</strong> ${data.error || 'Payment verification failed'}</p>
+                    <p>Please try again or contact support.</p>
                 </div>
             `;
         }
         
     } catch (error) {
         console.error('Error checking payment status:', error);
+        const statusDiv = document.getElementById(`payment-status-${invoiceId}`);
+        statusDiv.innerHTML = `
+            <div style="background: #f8d7da; border: 2px solid #dc3545; color: #721c24; padding: 15px; border-radius: 8px; text-align: center;">
+                <h5>❌ CONNECTION FAILED</h5>
+                <p>Unable to verify payment status. Please check your connection.</p>
+            </div>
+        `;
     }
 }
 
@@ -296,3 +351,99 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Coinremitter cryptocurrency payment script loaded');
     initializeCoinremitterPayment();
 });
+
+// ===== MANUAL TRANSACTION VERIFICATION FUNCTIONS =====
+
+function showManualVerification(invoiceId) {
+    const manualDiv = document.getElementById(`manual-verification-${invoiceId}`);
+    if (manualDiv) {
+        manualDiv.style.display = 'block';
+        // Focus on the input field
+        setTimeout(() => {
+            const input = document.getElementById(`txn-hash-${invoiceId}`);
+            if (input) input.focus();
+        }, 100);
+    }
+}
+
+async function verifyManualTransaction(invoiceId) {
+    const input = document.getElementById(`txn-hash-${invoiceId}`);
+    const verificationDiv = document.getElementById(`verification-status-${invoiceId}`);
+    
+    if (!input || !input.value.trim()) {
+        alert('Please enter a transaction hash');
+        return;
+    }
+    
+    const transactionHash = input.value.trim();
+    
+    // Show loading state
+    verificationDiv.innerHTML = `
+        <div style="background: #e7f3ff; border: 2px solid #0066cc; color: #004499; padding: 15px; border-radius: 8px; text-align: center;">
+            <h6>🔍 VERIFYING TRANSACTION...</h6>
+            <p>Checking blockchain for: <code style="word-break: break-all; font-size: 11px;">${transactionHash}</code></p>
+            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+    `;
+    
+    try {
+        const response = await fetch('/api/coinremitter/verify-transaction', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                invoiceId: invoiceId,
+                transactionHash: transactionHash
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.verified) {
+            // ✅ MANUAL VERIFICATION PASSED
+            verificationDiv.innerHTML = `
+                <div style="background: #d4edda; border: 2px solid #28a745; color: #155724; padding: 15px; border-radius: 8px; text-align: center;">
+                    <h5>✅ TRANSACTION VERIFIED - PASS!</h5>
+                    <p><strong>Transaction Hash:</strong> <code style="word-break: break-all; font-size: 11px;">${transactionHash}</code></p>
+                    <p><strong>Status:</strong> ${data.status}</p>
+                    <p><strong>Confirmations:</strong> ${data.confirmations}</p>
+                    <p style="margin-top: 10px; font-weight: bold;">Payment verified successfully!</p>
+                </div>
+            `;
+            
+            // Hide manual verification section
+            const manualDiv = document.getElementById(`manual-verification-${invoiceId}`);
+            if (manualDiv) {
+                manualDiv.style.display = 'none';
+            }
+            
+            // Redirect to success page
+            setTimeout(() => {
+                window.location.href = `/success?payment=crypto&txn=${transactionHash}&verified=true&method=manual`;
+            }, 2000);
+            
+        } else {
+            // ❌ MANUAL VERIFICATION FAILED
+            verificationDiv.innerHTML = `
+                <div style="background: #f8d7da; border: 2px solid #dc3545; color: #721c24; padding: 15px; border-radius: 8px; text-align: center;">
+                    <h5>❌ TRANSACTION VERIFICATION FAILED</h5>
+                    <p><strong>Transaction Hash:</strong> <code style="word-break: break-all; font-size: 11px;">${transactionHash}</code></p>
+                    <p><strong>Error:</strong> ${data.error || data.message || 'Transaction not found or invalid'}</p>
+                    <p style="margin-top: 10px;">Please check the transaction hash and try again.</p>
+                </div>
+            `;
+        }
+        
+    } catch (error) {
+        console.error('Error verifying transaction:', error);
+        verificationDiv.innerHTML = `
+            <div style="background: #f8d7da; border: 2px solid #dc3545; color: #721c24; padding: 15px; border-radius: 8px; text-align: center;">
+                <h5>❌ VERIFICATION ERROR</h5>
+                <p>Unable to verify transaction. Please try again.</p>
+            </div>
+        `;
+    }
+}
