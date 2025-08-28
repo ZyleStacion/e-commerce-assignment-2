@@ -291,6 +291,11 @@
         if (cryptoContainer) cryptoContainer.style.display = 'none';
         if (placeOrderBtn) placeOrderBtn.style.display = 'block';
         
+        // Hide crypto buttons when switching away from crypto
+        if (typeof hideCoinremitterButtons === 'function') {
+            hideCoinremitterButtons();
+        }
+        
         if (this.value === 'stripe') {
             if (stripeContainer) stripeContainer.style.display = 'block';
             if (placeOrderBtn) placeOrderBtn.style.display = 'none';
@@ -299,7 +304,7 @@
         } else if (this.value === 'crypto') {
             if (cryptoContainer) cryptoContainer.style.display = 'block';
             if (placeOrderBtn) placeOrderBtn.style.display = 'none';
-            // Initialize Coinremitter UI/buttons
+            // Initialize and render Coinremitter buttons only when crypto is selected
             if (typeof renderCoinremitterButtons === 'function') {
                 renderCoinremitterButtons();
             }

@@ -14,15 +14,16 @@ async function initializeCoinremitterPayment() {
         if (data.success) {
             coinremitterInitialized = true;
             availableCryptos = data.availableCryptos || availableCryptos;
-            renderCoinremitterButtons();
             console.log('Coinremitter initialized with currencies:', availableCryptos);
+            // Don't render buttons automatically - wait for user to select crypto payment
         } else {
             throw new Error('Coinremitter not available');
         }
         
     } catch (error) {
         console.error('Error initializing Coinremitter:', error);
-        showCoinremitterError();
+        // Don't show error automatically
+        coinremitterInitialized = false;
     }
 }
 
@@ -30,6 +31,12 @@ function renderCoinremitterButtons() {
     const container = document.getElementById('crypto-button-container');
     if (!container) {
         console.error('Crypto container not found');
+        return;
+    }
+    
+    // Check if coinremitter is initialized
+    if (!coinremitterInitialized) {
+        showCoinremitterError();
         return;
     }
     
@@ -50,6 +57,22 @@ function renderCoinremitterButtons() {
     
     container.innerHTML = buttonsHtml;
     container.style.display = 'block';
+}
+
+function hideCoinremitterButtons() {
+    const container = document.getElementById('crypto-button-container');
+    if (container) {
+        container.innerHTML = '';
+        container.style.display = 'none';
+    }
+    
+    // Clear any active payment intervals
+    if (window.paymentStatusInterval) {
+        clearInterval(window.paymentStatusInterval);
+    }
+    if (window.countdownInterval) {
+        clearInterval(window.countdownInterval);
+    }
 }
 
 function getCryptoInfo(crypto) {
@@ -267,7 +290,7 @@ async function checkPaymentStatus(invoiceId) {
                 
                 setTimeout(() => {
                     window.location.href = `/success?payment=crypto&crypto=${data.crypto}&txn=${data.transactionHash}&verified=true`;
-                }, 3000);
+                }, 5000);
                 
             } else if (status === 'pending') {
                 statusDiv.innerHTML = `
@@ -330,7 +353,7 @@ async function checkPaymentStatus(invoiceId) {
 function cancelCryptoPayment() {
     clearInterval(window.countdownInterval);
     clearInterval(window.paymentStatusInterval);
-    renderCoinremitterButtons();
+    hideCoinremitterButtons();
 }
 
 function showCoinremitterError() {
@@ -420,10 +443,10 @@ async function verifyManualTransaction(invoiceId) {
                 manualDiv.style.display = 'none';
             }
             
-            // Redirect to success page
+            // Redirect to success page after showing result for longer
             setTimeout(() => {
                 window.location.href = `/success?payment=crypto&txn=${transactionHash}&verified=true&method=manual`;
-            }, 2000);
+            }, 5000);
             
         } else {
             // ❌ MANUAL VERIFICATION FAILED
